@@ -4,10 +4,10 @@ var Cell = function (x, y) {
     this.x = x;
     this.y = y;
     this.walls = {
-        n: false,
-        e: false,
-        s: false,
-        w: false
+        n: true,
+        e: true,
+        s: true,
+        w: true
     };
     this.visited = false;
 };
@@ -15,12 +15,32 @@ var Cell = function (x, y) {
 // Function returns an object of directions in which a move can be made
 // Returns false if no move can be made from current position
 Cell.prototype.canMoveIn = function () {
-    
-};
-
-// Function selects random direction from the object passed in
-var selectRandomDirection = function (cell) {
-    
+    var possibleDir = {};
+    if (this.x > 0) {
+        if (!cells[this.y][this.x - 1].visited) {
+            possibleDir['w'] = true;
+        }
+    } 
+    if (this.x < cells[0].length - 1) {
+        if (!cells[this.y][this.x + 1].visited) {
+            possibleDir['e'] = true;
+        }
+    } 
+    if (this.y > 0) {
+        if (!cells[this.y - 1][this.x].visited) {
+            possibleDir['n'] = true;
+        }
+    } 
+    if (this.y < cells.length - 1) {
+        if (!cells[this.y + 1][this.x].visited) {
+            possibleDir['s'] = true;
+        }
+    }
+    if (!jQuery.isEmptyObject(possibleDir)) {
+        return possibleDir;
+    } else {
+        return false;
+    }
 };
 
 // array of cells that will forme the maze
@@ -35,17 +55,31 @@ var stack = [];
 // return next cell
 // set walls
 var move = function (cell, dir) {
-    setwalls();
+    cell.walls[dir] = false;
     stack.push(cell);
+    var nextCell;
     if (dir == 'n') {
-        return cells[cell.x][cells.y - 1];
+        nextCell = cells[cell.y - 1][cell.x];
     } else if (dir == 'e') {
-        return cells[cell.x + 1][cells.y];
+        nextCell = cells[cell.y][cell.x + 1];
     } else if (dir == 's') {
-        return cells[cell.x][cells.y + 1];
+        nextCell = cells[cell.y + 1][cell.x];
     } else {
-        return cells[cell.x - 1][cells.y;
+        nextCell = cells[cell.y][cell.x - 1];
     }
+    switch (dir) {
+        case 'n':
+            nextCell.walls.s = false;
+        case 'e':
+            nextCell.walls.w = false;
+        case 's':
+            nextCell.walls.n = false;
+        case 'w':
+            nextCell.walls.e = false;
+    }
+    cell.visited = true;
+    nextCell.visited = true;
+    return nextCell;
 };
 
 
@@ -58,26 +92,13 @@ $("#form").submit(function (e) {
     
     // Width and Height of the maze. This is a square maze
     var width = $("#width").val();
+//    Maze.height = $("#width").val();
     
     // initialize maze
     for(y = 0; y < width; y += 1) {
         cells[y] = [];
         for(x = 0; x < width; x += 1) {
             cells[y][x] = new Cell(x, y);
-            
-            // Set maze boundry to true
-            if(y == 0) {
-                cells[y][x].walls.w = true;
-            }
-            if(x == 0) {
-                cells[y][x].walls.n = true;
-            }
-            if(y == (width - 1)) {
-                cells[y][x].walls.e = true;
-            }
-            if(x == (width - 1)) {
-                cells[y][x].walls.s = true;
-            }
         }
     }
     
@@ -86,14 +107,16 @@ $("#form").submit(function (e) {
     
     // loop until there are cells on the stack
     // When stack is empty all spaces have been taken
-    var current_cell;
-    while (current_cell = stack.pop()) {
+    var curr_cell, prev_cell;
+    while (curr_cell = stack.pop()) {
         var possibleDirs;
-        while(possibleDir = current_cell.canMoveIn()) {
-            if (possibleDir) {
-                var directions = possibleDir.keys();
-                direction = directions[Math.floor(Math.random() * directions.length)];
-                current_cell = move(current_cell, direction);
+        while(possibleDirs = curr_cell.canMoveIn()) {
+//            curr_cell.visited = true;
+            if (possibleDirs) {
+                var directions = Object.keys(possibleDirs);
+                var direction = directions[Math.floor(Math.random() * directions.length)];
+                alert("Current cell " + curr_cell.x + " " + curr_cell.y + "\nDirections: " + directions +"\nDirection: " + direction);
+                curr_cell = move(curr_cell, direction);
             }
         }
     }
