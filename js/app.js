@@ -49,11 +49,6 @@ var cells = [];
 // Stack of cells
 var stack = [];
 
-// function move()
-// set appropriate wall on current cell
-// push current cell on stack
-// return next cell
-// set walls
 var move = function (cell, dir) {
     cell.walls[dir] = false;
     stack.push(cell);
@@ -70,59 +65,67 @@ var move = function (cell, dir) {
     switch (dir) {
         case 'n':
             nextCell.walls.s = false;
+            break;
         case 'e':
             nextCell.walls.w = false;
+            break;
         case 's':
             nextCell.walls.n = false;
+            break;
         case 'w':
             nextCell.walls.e = false;
+            break;
     }
     cell.visited = true;
     nextCell.visited = true;
     return nextCell;
 };
 
-
-$("#form").submit(function (e) {
-    var i, j; // loop variables
-    var x, y;
-
-    // Prevent default form submition action
-    e.preventDefault();
-    
-    // Width and Height of the maze. This is a square maze
-    var width = $("#width").val();
-//    Maze.height = $("#width").val();
-    
+function initCells(width) {
     // initialize maze
+    var x, y;
     for(y = 0; y < width; y += 1) {
         cells[y] = [];
         for(x = 0; x < width; x += 1) {
             cells[y][x] = new Cell(x, y);
         }
     }
-    
-    // push first cell on stack to start the loop
-    stack.push(cells[0][0]);
-    
+}
+
+function createMaze() {
     // loop until there are cells on the stack
     // When stack is empty all spaces have been taken
     var curr_cell, prev_cell;
     while (curr_cell = stack.pop()) {
         var possibleDirs;
         while(possibleDirs = curr_cell.canMoveIn()) {
-//            curr_cell.visited = true;
             if (possibleDirs) {
                 var directions = Object.keys(possibleDirs);
                 var direction = directions[Math.floor(Math.random() * directions.length)];
-                alert("Current cell " + curr_cell.x + " " + curr_cell.y + "\nDirections: " + directions +"\nDirection: " + direction);
+//                alert("Current cell " + curr_cell.x + " " + curr_cell.y + 
+//                      "\nDirections: " + directions +"\nDirection: " + direction);
                 curr_cell = move(curr_cell, direction);
             }
         }
     }
+}
 
+
+$("#form").submit(function (e) {
+    var i, j; // loop variables
+
+    // Prevent default form submition action
+    e.preventDefault();
     
+    // Width and Height of the maze. This is a square maze
+    var width = $("#width").val();
     
+    initCells(width);
+    
+    // push first cell on stack to start the loop
+    stack.push(cells[0][0]);
+    createMaze();
+
     // Drawing Logic
     // Width of canvas width attribute
     var cell_w = $("canvas").attr("width") / width;
@@ -130,16 +133,51 @@ $("#form").submit(function (e) {
     var ctx = $("canvas")[0].getContext("2d");
     
     // Clear canvas for drawing grid
+    ctx.beginPath();
     ctx.clearRect(0, 0, $("canvas").attr("width"), $("canvas").attr("height"));
+    ctx.stroke();
+    ctx.closePath();
     
-    // Draw grid
+    // Reer Maze
     var x = 0, y = 0;
-    for (i = 0; i < width; i += 1 ) {
-        x = 0;
-        for(j = 0; j < width; j += 1 ) {
-            ctx.strokeRect(x, y, cell_w, cell_w);
-            x += cell_w;
+    var xCoordinate = 0, yCoordinate = 0;
+    for (y = 0; y < width; y += 1) {
+        for (x = 0; x < width; x += 1) {
+            xCoordinate = x * cell_w;
+            yCoordinate = y * cell_w;
+            ctx.beginPath();
+            ctx.moveTo(xCoordinate, yCoordinate);
+            
+            if (cells[y][x].walls.n) {
+                xCoordinate = xCoordinate + cell_w;
+                ctx.lineTo(xCoordinate, yCoordinate);
+            } else {
+                xCoordinate = xCoordinate + cell_w;
+                ctx.moveTo(xCoordinate, yCoordinate);
+            }
+            if (cells[y][x].walls.e) {
+                yCoordinate = yCoordinate + cell_w;
+                ctx.lineTo(xCoordinate, yCoordinate);
+            } else {
+                yCoordinate = yCoordinate + cell_w;
+                ctx.moveTo(xCoordinate, yCoordinate);
+            }
+            if (cells[y][x].walls.s) {
+                xCoordinate = xCoordinate - cell_w;
+                ctx.lineTo(xCoordinate, yCoordinate);
+            } else {
+                xCoordinate = xCoordinate - cell_w;
+                ctx.moveTo(xCoordinate, yCoordinate);
+            }
+            if (cells[y][x].walls.w) {
+                yCoordinate = yCoordinate - cell_w;
+                ctx.lineTo(xCoordinate, yCoordinate);
+            } else {
+                yCoordinate = yCoordinate - cell_w;
+                ctx.moveTo(xCoordinate, yCoordinate);
+            }
+            ctx.stroke();
+            ctx.closePath();
         }
-        y += cell_w;
     }
 }); // End submit
