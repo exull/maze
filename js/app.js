@@ -50,8 +50,13 @@ var cells = [];
 var stack = [];
 
 var move = function (cell, dir) {
-    cell.walls[dir] = false;
+    //removing wall in the direction of the move
+    cell.walls[dir] = false; 
+    
+    // Pushing current cell on the stack
     stack.push(cell);
+    
+    // Determine what should be the next cell
     var nextCell;
     if (dir == 'n') {
         nextCell = cells[cell.y - 1][cell.x];
@@ -62,6 +67,8 @@ var move = function (cell, dir) {
     } else {
         nextCell = cells[cell.y][cell.x - 1];
     }
+    
+    // REmove appropriate wall in nextCell
     switch (dir) {
         case 'n':
             nextCell.walls.s = false;
@@ -76,11 +83,15 @@ var move = function (cell, dir) {
             nextCell.walls.e = false;
             break;
     }
+    
+    // Mark both current and Next cells as visited
     cell.visited = true;
     nextCell.visited = true;
+    
     return nextCell;
 };
 
+// Initialize all the cells in the Grid
 function initCells(width) {
     // initialize maze
     var x, y;
@@ -92,6 +103,7 @@ function initCells(width) {
     }
 }
 
+
 function createMaze() {
     // loop until there are cells on the stack
     // When stack is empty all spaces have been taken
@@ -102,8 +114,6 @@ function createMaze() {
             if (possibleDirs) {
                 var directions = Object.keys(possibleDirs);
                 var direction = directions[Math.floor(Math.random() * directions.length)];
-//                alert("Current cell " + curr_cell.x + " " + curr_cell.y + 
-//                      "\nDirections: " + directions +"\nDirection: " + direction);
                 curr_cell = move(curr_cell, direction);
             }
         }

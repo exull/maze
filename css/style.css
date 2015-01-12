@@ -21,10 +21,12 @@ input[type=text] {
     margin: 1em;
 }
 
-input[type=submit] {
+input[type=submit],
+button {
     border: none;
     padding: 1em;
     border-radius: 5px;
+    margin-left: 1em;
 }
 
 #maze {
